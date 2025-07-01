@@ -1,10 +1,11 @@
 package register_handler
 
 import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
-	"github.com/dsaime/auth-api/internal/controller/http2"
-	"github.com/dsaime/auth-api/internal/controller/http2/middleware"
+	"github.com/dsaime/auth-api/internal/domain"
 	"github.com/dsaime/auth-api/internal/service"
 )
 
@@ -12,26 +13,48 @@ import (
 // для пользователя с идентификатором (GUID) указанным в параметре запроса.
 //
 // Метод: POST /auth/login
-func Login(router http2.Router) {
+func Login(router *fiber.App, ss Services, jwtSecret string) {
 	// Тело запроса
 	type requestBody struct {
 		UserID uuid.UUID `json:"user_id"`
 	}
-	router.HandleFunc(
-		"POST /auth/login",
-		middleware.ClientAuthChain,
-		func(context http2.Context) (any, error) {
+	router.Post(
+		"/auth/login",
+		func(context *fiber.Ctx) error {
 			var rb requestBody
-			// Декодируем тело запроса в структуру requestBody.
-			if err := http2.DecodeBody(context, &rb); err != nil {
-				return nil, err
+			// Декодируем тело запроса в структуру requestBody
+			if err := context.BodyParser(&rb); err != nil {
+				return err
 			}
 
 			input := service.AuthLoginIn{
 				UserID:    rb.UserID,
-				UserAgent: context.UserAgent(),
+				UserAgent: context.Get(fiber.HeaderUserAgent),
 			}
 
-			return context.Services().Auth().Login(input)
+			out, err := ss.Auth().Login(input)
+			if err != nil {
+				return err
+			}
+
+			token := jwt.New(jwt.SigningMethodHS512)
+
+			claims := token.Claims.(jwt.MapClaims)
+			claims["jti"] = out.Session.ID
+			claims["user_id"] = out.Session.UserID
+			claims["exp"] = out.Session.Expiry
+
+			t, err := token.SignedString([]byte(jwtSecret))
+			if err != nil {
+				return context.SendStatus(fiber.StatusInternalServerError)
+			}
+
+			return context.JSON(struct {
+				Session domain.Session `json:"session"`
+				Token   string         `json:"token"`
+			}{
+				Session: out.Session,
+				Token:   t,
+			})
 		})
 }

@@ -6,31 +6,21 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gofiber/fiber/v2"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/dsaime/auth-api/internal/controller/http2"
 	registerHandler "github.com/dsaime/auth-api/internal/controller/http2/register_handler"
-	"github.com/dsaime/auth-api/internal/controller/http2/router"
 )
 
-func initHttpServer(ss *services, cfg Config) *http.Server {
-	r := &router.Router{
-		Services: ss,
-	}
-	registerHandlers(r)
+func runHttpServer(ctx context.Context, ss *services, cfg Config) error {
+	fiberApp := fiber.New()
+	registerHandlers(fiberApp, ss, cfg.JWTSecret)
 
-	return &http.Server{
-		Addr:    cfg.HttpAddr,
-		Handler: r,
-	}
-}
-
-func runHttpServer(ctx context.Context, server *http.Server) error {
 	g, ctx := errgroup.WithContext(ctx)
 
 	// Запуск сервера
 	g.Go(func() error {
-		err := server.ListenAndServe()
+		err := fiberApp.Listen(cfg.HttpAddr)
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			return fmt.Errorf("server.ListenAndServe: %w", err)
 		}
@@ -39,23 +29,22 @@ func runHttpServer(ctx context.Context, server *http.Server) error {
 
 	// Завершение сервера при завершении контекста
 	g.Go(func() error {
-		// > The first call to return a non-nil error cancels the group's context
 		<-ctx.Done()
-		return server.Shutdown(ctx)
+		return fiberApp.Shutdown()
 	})
 
 	return g.Wait()
 }
 
-func registerHandlers(r http2.Router) {
+func registerHandlers(r *fiber.App, ss *services, jwtSecret string) {
 	// Служебные
 	registerHandler.Ping(r)
 
 	// Аутентификация /auth
-	registerHandler.Login(r)
-	registerHandler.Refresh(r)
-	registerHandler.Logout(r)
+	registerHandler.Login(r, ss, jwtSecret)
+	registerHandler.Refresh(r, ss)
+	registerHandler.Logout(r, ss, jwtSecret)
 
 	// Аутентифицированный пользователь /user
-	registerHandler.User(r)
+	registerHandler.User(r, jwtSecret)
 }

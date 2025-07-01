@@ -1,26 +1,28 @@
 package register_handler
 
 import (
-	"github.com/dsaime/auth-api/internal/controller/http2"
+	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+
 	"github.com/dsaime/auth-api/internal/controller/http2/middleware"
 )
 
 // User регистрирует обработчик, на получение текущего пользователя (роут защищен).
 //
 // Метод: GET /user
-func User(router http2.Router) {
-	router.HandleFunc(
-		"GET /user", // Подсмотрел тут https://docs.github.com/en/rest/users/users
-		middleware.ClientAuthChain,
-		func(context http2.Context) (any, error) {
-			return map[string]any{
-				"id": context.UserID(),
-			}, nil
+func User(router *fiber.App, jwtSecret string) {
+	router.Get(
+		"/user",
+		func(context *fiber.Ctx) error {
+			user := context.Locals("user").(*jwt.Token)
+			claims := user.Claims.(jwt.MapClaims)
+			userID, _ := claims["user_id"].(uuid.UUID)
 
-			//input := service.UserInfo{
-			//	UserID: rb.UserID,
-			//}
-			//
-			//return context.Services().Users().Info(input)
-		})
+			return context.JSON(map[string]any{
+				"id": userID,
+			})
+		},
+		middleware.ProtectedWithJWT(jwtSecret),
+	)
 }

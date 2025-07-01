@@ -36,6 +36,7 @@ type AuthLoginIn struct {
 type AuthLoginOut struct {
 	TokenID      string
 	RefreshToken string
+	Session      domain.Session
 }
 
 func (s *Auth) Login(in AuthLoginIn) (out AuthLoginOut, err error) {
@@ -43,7 +44,7 @@ func (s *Auth) Login(in AuthLoginIn) (out AuthLoginOut, err error) {
 }
 
 type AuthRefreshIn struct {
-	TokenID      string
+	AccessToken  string
 	RefreshToken string
 }
 type AuthRefreshOut struct {

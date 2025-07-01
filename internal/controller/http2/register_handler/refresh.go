@@ -1,34 +1,39 @@
 package register_handler
 
 import (
-	"github.com/dsaime/auth-api/internal/controller/http2"
-	"github.com/dsaime/auth-api/internal/controller/http2/middleware"
+	"github.com/gofiber/fiber/v2"
+
 	"github.com/dsaime/auth-api/internal/service"
 )
 
 // Refresh регистрирует обработчик, на обновление пары токенов.
 //
 // Метод: POST /auth/refresh
-func Refresh(router http2.Router) {
+func Refresh(router *fiber.App, ss Services) {
 	// Тело запроса
 	type requestBody struct {
 		RefreshToken string `json:"refresh_token"`
+		AccessToken  string `json:"access_token"`
 	}
-	router.HandleFunc(
-		"POST /auth/refresh",
-		middleware.ClientAuthChain,
-		func(context http2.Context) (any, error) {
+	router.Post(
+		"/auth/refresh",
+		func(context *fiber.Ctx) error {
 			var rb requestBody
 			// Декодируем тело запроса в структуру requestBody.
-			if err := http2.DecodeBody(context, &rb); err != nil {
-				return nil, err
+			if err := context.BodyParser(&rb); err != nil {
+				return err
 			}
 
 			input := service.AuthRefreshIn{
-				TokenID:      context.AccessTokenID(),
+				AccessToken:  rb.AccessToken,
 				RefreshToken: rb.RefreshToken,
 			}
 
-			return context.Services().Auth().Refresh(input)
+			out, err := ss.Auth().Refresh(input)
+			if err != nil {
+				return err
+			}
+
+			return context.JSON(out)
 		})
 }
