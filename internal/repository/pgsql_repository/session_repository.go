@@ -19,7 +19,7 @@ func (r *SessionRepository) List(filter domain.SessionFilter) ([]domain.Session,
 	if err := r.DB().Select(&sessions, `
 		SELECT *
 		FROM sessions
-		WHERE ($1 = '' OR $1 = access_token)
+		WHERE ($1 = '' OR $1 = id)
 	`, filter.ID); err != nil {
 		return nil, fmt.Errorf("r.DB().Select: %w", err)
 	}
@@ -33,16 +33,14 @@ func (r *SessionRepository) Upsert(session domain.Session) error {
 	}
 
 	if _, err := r.DB().NamedExec(`
-		INSERT INTO sessions(id, user_id, name, status, access_token, access_expiry, refresh_token, refresh_expiry) 
-		VALUES (:id, :user_id, :name, :status, :access_token, :access_expiry, :refresh_token, :refresh_expiry)
+		INSERT INTO sessions(id, user_id, user_agent, status, expiry, refresh_token) 
+		VALUES (:id, :user_id, :user_agent, :status, :expiry, :refresh_token)
 		ON CONFLICT (id) DO UPDATE SET
 			user_id=excluded.user_id,
-			name=excluded.name,
+			user_agent=excluded.user_agent,
 			status=excluded.status,
-			access_token=excluded.access_token,
-			access_expiry=excluded.access_expiry,
-			refresh_token=excluded.refresh_token,
-			refresh_expiry=excluded.refresh_expiry
+			expiry=excluded.expiry,
+			refresh_token=excluded.refresh_token
 	`, toDBSession(session)); err != nil {
 		return fmt.Errorf("r.DB().NamedExec: %w", err)
 	}
