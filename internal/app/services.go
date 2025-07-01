@@ -4,7 +4,7 @@ import "github.com/dsaime/auth-api/internal/service"
 
 type services struct {
 	chats    *service.Chats
-	sessions *service.Sessions
+	sessions *service.Auth
 	users    *service.Users
 }
 
@@ -12,7 +12,7 @@ func (s *services) Chats() *service.Chats {
 	return s.chats
 }
 
-func (s *services) Sessions() *service.Sessions {
+func (s *services) Auth() *service.Auth {
 	return s.sessions
 }
 
@@ -25,7 +25,7 @@ func initServices(repos *repositories, adaps *adapters) *services {
 		chats: &service.Chats{
 			Repo: repos.chats,
 		},
-		sessions: &service.Sessions{
+		sessions: &service.Auth{
 			Repo: repos.sessions,
 		},
 		users: &service.Users{

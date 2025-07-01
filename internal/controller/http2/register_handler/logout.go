@@ -28,10 +28,10 @@ func Logout(router http2.Router) {
 				return nil, err
 			}
 
-			input := service.AuthLogout{
+			input := service.AuthLogoutIn{
 				UserID: rb.UserID,
 			}
 
-			return context.Services().Auth().Login(input)
+			return context.Services().Auth().Logout(input)
 		})
 }

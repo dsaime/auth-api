@@ -32,7 +32,7 @@ type testSuite struct {
 	}
 	ss struct {
 		chats    *Chats
-		sessions *Sessions
+		sessions *Auth
 		users    *Users
 	}
 	ad struct {
@@ -136,7 +136,7 @@ func (suite *testSuite) SetupTest() {
 	suite.ss.chats = &Chats{
 		Repo: suite.rr.chats,
 	}
-	suite.ss.sessions = &Sessions{
+	suite.ss.sessions = &Auth{
 		Repo: suite.rr.sessions,
 	}
 	suite.ss.users = &Users{
@@ -217,7 +217,7 @@ func (suite *testSuite) randomOAuthToken() userr.OpenAuthToken {
 	t, err := userr.NewOpenAuthToken(
 		randomString(32), // AccessToken
 		"Bearer",         // TokenType
-		randomString(32), // RefreshToken
+		randomString(32), // RefreshTokenHash
 		time.Now().Add(time.Hour*24*time.Duration(rand.Intn(7)+1)), // Expiry
 
 	)

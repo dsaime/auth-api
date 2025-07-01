@@ -3,7 +3,7 @@ package http2
 import (
 	"net/http"
 
-	"github.com/dsaime/auth-api/internal/domain/sessionn"
+	"github.com/dsaime/auth-api/internal/domain"
 	"github.com/dsaime/auth-api/internal/service"
 )
 
@@ -22,7 +22,7 @@ type Context interface {
 	RequestID() string
 
 	// Session возвращает текущую сессию пользователя
-	Session() sessionn.Session
+	Session() domain.Session
 
 	// Request возвращает HTTP-запрос
 	Request() *http.Request
@@ -43,7 +43,7 @@ type RWContext interface {
 	Context
 
 	// SetSession устанавливает сессию пользователя
-	SetSession(sessionn.Session)
+	SetSession(domain.Session)
 
 	// SetRequestID устанавливает уникальный идентификатор запроса
 	SetRequestID(string)
@@ -57,7 +57,5 @@ type Middleware func(rw HandlerFuncRW) HandlerFuncRW
 
 // Services определяет интерфейс для доступа к сервисам приложения
 type Services interface {
-	Chats() *service.Chats       // Сервис чатов
-	Sessions() *service.Sessions // Сервис сессий
-	Users() *service.Users       // Сервис пользователей
+	Auth() *service.Auth // Сервис аутентификации
 }

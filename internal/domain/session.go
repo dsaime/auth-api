@@ -5,17 +5,18 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/exp/slices"
 )
 
 // Session представляет собой агрегат сессии
 type Session struct {
-	ID           uuid.UUID // ID сессии
-	UserID       uuid.UUID // ID пользователя, к которому относится сессия
-	UserAgent    string    // [название модели телефона / название браузера]
-	Status       string    // Статус сессии
-	Expiry       time.Time // Дата истечения сессии
-	RefreshToken string    // Токен для обновления AccessToken
+	ID               uuid.UUID // ID сессии
+	UserID           uuid.UUID // ID пользователя, к которому относится сессия
+	UserAgent        string    // [название модели телефона / название браузера]
+	Status           string    // Статус сессии
+	Expiry           time.Time // Дата истечения сессии
+	RefreshTokenHash string    // Хэш токен для обновления продления сессии
 }
 
 const (
@@ -38,7 +39,7 @@ const (
 )
 
 // NewSession создает новую сессию, связанную с пользователем.
-func NewSession(userID uuid.UUID, agent, status string) (Session, error) {
+func NewSession(userID uuid.UUID, agent, status, refreshToken string) (Session, error) {
 	if err := ValidateID(userID); err != nil {
 		return Session{}, err
 	}
@@ -46,6 +47,14 @@ func NewSession(userID uuid.UUID, agent, status string) (Session, error) {
 		return Session{}, err
 	}
 	if err := ValidateSessionStatus(status); err != nil {
+		return Session{}, err
+	}
+	if refreshToken == "" {
+		return Session{}, errors.New("некорректный refreshToken")
+	}
+
+	hashedRefreshToken, err := bcrypt.GenerateFromPassword([]byte(refreshToken), bcrypt.DefaultCost)
+	if err != nil {
 		return Session{}, err
 	}
 
@@ -57,7 +66,7 @@ func NewSession(userID uuid.UUID, agent, status string) (Session, error) {
 		Expiry: time.Now().Add(accessTokenLifetime).
 			In(time.UTC).               // Для единообразия и возможности сравнивать в тестах всю сессию
 			Truncate(time.Microsecond), // Чтобы значение полностью помещалось в БД
-		RefreshToken: uuid.NewString(),
+		RefreshTokenHash: string(hashedRefreshToken),
 	}, nil
 }
 

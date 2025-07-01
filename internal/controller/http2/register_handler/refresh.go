@@ -14,7 +14,7 @@ import (
 func Refresh(router http2.Router) {
 	// Тело запроса
 	type requestBody struct {
-		UserID uuid.UUID `json:"user_id"`
+		RefreshToken string `json:"refresh_token"`
 	}
 	router.HandleFunc(
 		"POST /auth/refresh",
@@ -26,8 +26,9 @@ func Refresh(router http2.Router) {
 				return nil, err
 			}
 
-			input := service.AuthRefresh{
-				UserID: rb.UserID,
+			input := service.AuthRefreshIn{
+				TokenID:      context.JWT().ID,
+				RefreshToken: rb.RefreshToken,
 			}
 
 			return context.Services().Auth().Refresh(input)

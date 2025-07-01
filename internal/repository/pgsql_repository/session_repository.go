@@ -55,33 +55,33 @@ func (r *SessionRepository) InTransaction(fn func(txRepo domain.SessionRepositor
 }
 
 type dbSession struct {
-	ID           string    `db:"id"`
-	UserID       string    `db:"user_id"`
-	UserAgent    string    `db:"user_agent"`
-	Status       string    `db:"status"`
-	Expiry       time.Time `db:"expiry"`
-	RefreshToken string    `db:"refresh_token"`
+	ID               string    `db:"id"`
+	UserID           string    `db:"user_id"`
+	UserAgent        string    `db:"user_agent"`
+	Status           string    `db:"status"`
+	Expiry           time.Time `db:"expiry"`
+	RefreshTokenHash string    `db:"refresh_token_hash"`
 }
 
 func toDBSession(session domain.Session) dbSession {
 	return dbSession{
-		ID:           session.ID.String(),
-		UserID:       session.UserID.String(),
-		UserAgent:    session.UserAgent,
-		Status:       session.Status,
-		Expiry:       session.Expiry,
-		RefreshToken: session.RefreshToken,
+		ID:               session.ID.String(),
+		UserID:           session.UserID.String(),
+		UserAgent:        session.UserAgent,
+		Status:           session.Status,
+		Expiry:           session.Expiry,
+		RefreshTokenHash: session.RefreshTokenHash,
 	}
 }
 
 func toDomainSession(session dbSession) domain.Session {
 	return domain.Session{
-		ID:           uuid.MustParse(session.ID),
-		UserID:       uuid.MustParse(session.UserID),
-		UserAgent:    session.UserAgent,
-		Status:       session.Status,
-		Expiry:       session.Expiry,
-		RefreshToken: session.RefreshToken,
+		ID:               uuid.MustParse(session.ID),
+		UserID:           uuid.MustParse(session.UserID),
+		UserAgent:        session.UserAgent,
+		Status:           session.Status,
+		Expiry:           session.Expiry,
+		RefreshTokenHash: session.RefreshTokenHash,
 	}
 }
 

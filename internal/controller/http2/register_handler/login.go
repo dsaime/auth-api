@@ -27,8 +27,9 @@ func Login(router http2.Router) {
 				return nil, err
 			}
 
-			input := service.AuthLogin{
-				UserID: rb.UserID,
+			input := service.AuthLoginIn{
+				UserID:    rb.UserID,
+				UserAgent: context.UserAgent(),
 			}
 
 			return context.Services().Auth().Login(input)

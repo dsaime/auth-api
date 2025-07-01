@@ -53,10 +53,10 @@ func TestNewSession(t *testing.T) {
 
 		// Токены равны случайными значениями
 		assert.NotZero(t, session.AccessToken.Token)
-		assert.NotZero(t, session.RefreshToken.Token)
+		assert.NotZero(t, session.RefreshTokenHash.Token)
 
 		// Ненулевым сроком жизни
 		assert.NotZero(t, session.AccessToken.Expiry)
-		assert.NotZero(t, session.RefreshToken.Expiry)
+		assert.NotZero(t, session.RefreshTokenHash.Expiry)
 	})
 }
