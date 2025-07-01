@@ -3,7 +3,6 @@ package http2
 import (
 	"net/http"
 
-	"github.com/dsaime/auth-api/internal/domain"
 	"github.com/dsaime/auth-api/internal/service"
 )
 
@@ -16,14 +15,8 @@ type Router interface {
 // HandlerFunc представляет собой функцию-обработчик
 type HandlerFunc func(Context) (any, error)
 
-// Context определяет интерфейс для доступа к информации о запросе и сессии.
+// Context определяет интерфейс для доступа к информации о запросе.
 type Context interface {
-	// RequestID возвращает уникальный идентификатор запроса
-	RequestID() string
-
-	// Session возвращает текущую сессию пользователя
-	Session() domain.Session
-
 	// Request возвращает HTTP-запрос
 	Request() *http.Request
 
@@ -41,12 +34,6 @@ type HandlerFuncRW func(RWContext) (any, error)
 type RWContext interface {
 	// Context для расширения существующего контекста
 	Context
-
-	// SetSession устанавливает сессию пользователя
-	SetSession(domain.Session)
-
-	// SetRequestID устанавливает уникальный идентификатор запроса
-	SetRequestID(string)
 
 	// SetRequest устанавливает HTTP-запрос
 	SetRequest(*http.Request)

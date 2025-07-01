@@ -1,8 +1,6 @@
 package register_handler
 
 import (
-	"github.com/google/uuid"
-
 	"github.com/dsaime/auth-api/internal/controller/http2"
 	"github.com/dsaime/auth-api/internal/controller/http2/middleware"
 )
@@ -11,22 +9,12 @@ import (
 //
 // Метод: GET /user
 func User(router http2.Router) {
-	// Тело запроса
-	type requestBody struct {
-		UserID uuid.UUID `json:"user_id"`
-	}
 	router.HandleFunc(
 		"GET /user", // Подсмотрел тут https://docs.github.com/en/rest/users/users
 		middleware.ClientAuthChain,
 		func(context http2.Context) (any, error) {
-			var rb requestBody
-			// Декодируем тело запроса в структуру requestBody.
-			if err := http2.DecodeBody(context, &rb); err != nil {
-				return nil, err
-			}
-
 			return map[string]any{
-				"id": rb.UserID,
+				"id": context.UserID(),
 			}, nil
 
 			//input := service.UserInfo{

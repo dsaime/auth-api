@@ -1,8 +1,6 @@
 package register_handler
 
 import (
-	"github.com/google/uuid"
-
 	"github.com/dsaime/auth-api/internal/controller/http2"
 	"github.com/dsaime/auth-api/internal/controller/http2/middleware"
 	"github.com/dsaime/auth-api/internal/service"
@@ -14,22 +12,12 @@ import (
 //
 // Метод: POST /auth/logout
 func Logout(router http2.Router) {
-	// Тело запроса
-	type requestBody struct {
-		UserID uuid.UUID `json:"user_id"`
-	}
 	router.HandleFunc(
 		"POST /auth/logout",
 		middleware.ClientAuthChain,
 		func(context http2.Context) (any, error) {
-			var rb requestBody
-			// Декодируем тело запроса в структуру requestBody.
-			if err := http2.DecodeBody(context, &rb); err != nil {
-				return nil, err
-			}
-
 			input := service.AuthLogoutIn{
-				UserID: rb.UserID,
+				TokenID: context.AccessTokenID(),
 			}
 
 			return context.Services().Auth().Logout(input)

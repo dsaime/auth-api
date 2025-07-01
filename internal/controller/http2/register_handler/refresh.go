@@ -1,8 +1,6 @@
 package register_handler
 
 import (
-	"github.com/google/uuid"
-
 	"github.com/dsaime/auth-api/internal/controller/http2"
 	"github.com/dsaime/auth-api/internal/controller/http2/middleware"
 	"github.com/dsaime/auth-api/internal/service"
@@ -27,7 +25,7 @@ func Refresh(router http2.Router) {
 			}
 
 			input := service.AuthRefreshIn{
-				TokenID:      context.JWT().ID,
+				TokenID:      context.AccessTokenID(),
 				RefreshToken: rb.RefreshToken,
 			}
 
