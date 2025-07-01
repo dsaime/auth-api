@@ -1,0 +1,44 @@
+networks:
+  dsaime.network:
+
+services:
+  test.auth-api:
+    container_name: dsaime.test.auth-api
+    build:
+      context: ../
+      dockerfile: ./Containerfile
+    networks:
+      dsaime.network:
+    ports:
+      - "8080:8080"
+    depends_on:
+      test.pgsql:
+        condition: service_healthy
+    command:
+      - "--http-addr"
+      - ":8080"
+      - "--pgsql-dsn"
+      - "postgresql://postgres:postgres@test.pgsql:5432/test_auth_api_db?sslmode=disable"
+      - "--log-level"
+      - "debug"
+
+  # https://github.com/docker-library/docs/blob/master/postgres/README.md
+  test.pgsql:
+    container_name: dsaime.test.pgsql
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: test_npc_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./pgsql/init:/docker-entrypoint-initdb.d
+    networks:
+      dsaime.network:
