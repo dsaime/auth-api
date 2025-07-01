@@ -51,28 +51,11 @@ func registerHandlers(r http2.Router) {
 	// Служебные
 	registerHandler.Ping(r)
 
-	// OAuth /oauth
-	registerHandler.OAuthInitRegistration(r)
-	registerHandler.OAuthCompleteRegistrationCallback(r)
-
 	// Аутентификация /auth
-	registerHandler.LoginByPassword(r)
-	registerHandler.RegistrationByPassword(r)
-
-	// Чат /chats
-	registerHandler.MyChats(r)
-	registerHandler.CreateChat(r)
-	registerHandler.UpdateChatName(r)
-	registerHandler.LeaveChat(r)
-	registerHandler.ChatMembers(r)
-	registerHandler.ChatInvitations(r)
-
-	// Участники /chats//members
-	registerHandler.DeleteMember(r)
-
-	// Приглашения /invitations
-	registerHandler.MyInvitations(r)
 	registerHandler.Login(r)
-	registerHandler.AcceptInvitation(r)
-	registerHandler.CancelInvitation(r)
+	registerHandler.Refresh(r)
+	registerHandler.Logout(r)
+
+	// Аутентифицированный пользователь /user
+	registerHandler.User(r)
 }

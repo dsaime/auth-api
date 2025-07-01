@@ -50,11 +50,13 @@ func NewSession(userID uuid.UUID, agent, status string) (Session, error) {
 	}
 
 	return Session{
-		ID:           uuid.New(),
-		UserID:       userID,
-		UserAgent:    agent,
-		Status:       status,
-		Expiry:       time.Now().Add(accessTokenLifetime).In(time.UTC).Truncate(time.Microsecond),
+		ID:        uuid.New(),
+		UserID:    userID,
+		UserAgent: agent,
+		Status:    status,
+		Expiry: time.Now().Add(accessTokenLifetime).
+			In(time.UTC).               // Для единообразия и возможности сравнивать в тестах всю сессию
+			Truncate(time.Microsecond), // Чтобы значение полностью помещалось в БД
 		RefreshToken: uuid.NewString(),
 	}, nil
 }
