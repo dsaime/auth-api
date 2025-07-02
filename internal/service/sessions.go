@@ -60,17 +60,12 @@ func (s *Auth) Refresh(in AuthRefreshIn) (AuthRefreshOut, error) {
 
 	var updatedSession domain.Session
 	if err := s.Repo.InTransaction(func(txRepo domain.SessionRepository) error {
-		sessions, err := s.Repo.List(domain.SessionFilter{
+		session, err := s.findSession(domain.SessionFilter{
 			ID: in.SessionID,
 		})
 		if err != nil {
 			return err
 		}
-
-		if len(sessions) != 1 {
-			return ErrUnauthorized
-		}
-		session := sessions[0]
 
 		if session.Status != domain.SessionStatusVerified {
 			return ErrUnauthorized
@@ -115,17 +110,12 @@ type AuthLogoutIn struct {
 func (s *Auth) Logout(in AuthLogoutIn) error {
 	// TODO: in.Validate()
 
-	sessions, err := s.Repo.List(domain.SessionFilter{
+	session, err := s.findSession(domain.SessionFilter{
 		ID: in.SessionID,
 	})
 	if err != nil {
 		return err
 	}
-
-	if len(sessions) != 1 {
-		return ErrUnauthorized
-	}
-	session := sessions[0]
 
 	if session.Status != domain.SessionStatusVerified {
 		return ErrUnauthorized
@@ -137,4 +127,17 @@ func (s *Auth) Logout(in AuthLogoutIn) error {
 	}
 
 	return nil
+}
+
+func (s *Auth) findSession(filter domain.SessionFilter) (domain.Session, error) {
+	sessions, err := s.Repo.List(filter)
+	if err != nil {
+		return domain.Session{}, err
+	}
+
+	if len(sessions) != 1 {
+		return domain.Session{}, errors.New("not found")
+	}
+
+	return sessions[0], nil
 }
