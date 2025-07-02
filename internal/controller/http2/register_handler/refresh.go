@@ -13,7 +13,7 @@ import (
 // Refresh регистрирует обработчик, на обновление пары токенов.
 //
 // Метод: POST /auth/refresh
-func Refresh(router *fiber.App, ss services, jwtSecret string) {
+func Refresh(router *fiber.App, ss services, jwtSecret []byte) {
 	// Тело запроса
 	type requestBody struct {
 		RefreshToken string `json:"refresh_token"`
@@ -28,7 +28,7 @@ func Refresh(router *fiber.App, ss services, jwtSecret string) {
 				return err
 			}
 
-			token, err := validateJWT(rb.AccessToken, []byte(jwtSecret))
+			token, err := validateJWT(rb.AccessToken, jwtSecret)
 			if err != nil && !errors.Is(err, jwt.ErrTokenExpired) {
 				return err
 			}

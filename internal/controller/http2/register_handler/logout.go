@@ -14,7 +14,7 @@ import (
 // на получение его GUID и операция обновления токенов).
 //
 // Метод: POST /auth/logout
-func Logout(router *fiber.App, ss services, jwtSecret string) {
+func Logout(router *fiber.App, ss services, jwtSecret []byte) {
 	router.Post(
 		"/auth/logout",
 		func(context *fiber.Ctx) error {

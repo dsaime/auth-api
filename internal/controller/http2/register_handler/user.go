@@ -11,7 +11,7 @@ import (
 // User регистрирует обработчик, на получение текущего пользователя (роут защищен).
 //
 // Метод: GET /user
-func User(router *fiber.App, jwtSecret string) {
+func User(router *fiber.App, jwtSecret []byte) {
 	router.Get(
 		"/user",
 		func(context *fiber.Ctx) error {

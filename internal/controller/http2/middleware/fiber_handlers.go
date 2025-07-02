@@ -5,8 +5,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func ProtectedWithJWT(secret string) fiber.Handler {
+func ProtectedWithJWT(jwtSecret []byte) fiber.Handler {
 	return jwtware.New(jwtware.Config{
-		SigningKey: jwtware.SigningKey{Key: []byte(secret)},
+		SigningKey: jwtware.SigningKey{Key: jwtSecret},
 	})
 }

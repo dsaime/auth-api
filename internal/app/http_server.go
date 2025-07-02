@@ -14,7 +14,7 @@ import (
 
 func runHttpServer(ctx context.Context, ss *services, cfg Config) error {
 	fiberApp := fiber.New()
-	registerHandlers(fiberApp, ss, cfg.JWTSecret)
+	registerHandlers(fiberApp, ss, []byte(cfg.JWTSecret))
 
 	g, ctx := errgroup.WithContext(ctx)
 
@@ -36,13 +36,13 @@ func runHttpServer(ctx context.Context, ss *services, cfg Config) error {
 	return g.Wait()
 }
 
-func registerHandlers(r *fiber.App, ss *services, jwtSecret string) {
+func registerHandlers(r *fiber.App, ss *services, jwtSecret []byte) {
 	// Служебные
 	registerHandler.Ping(r)
 
 	// Аутентификация /auth
 	registerHandler.Login(r, ss, jwtSecret)
-	registerHandler.Refresh(r, ss)
+	registerHandler.Refresh(r, ss, jwtSecret)
 	registerHandler.Logout(r, ss, jwtSecret)
 
 	// Аутентифицированный пользователь /user

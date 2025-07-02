@@ -13,7 +13,7 @@ import (
 // для пользователя с идентификатором (GUID) указанным в параметре запроса.
 //
 // Метод: POST /auth/login
-func Login(router *fiber.App, ss services, jwtSecret string) {
+func Login(router *fiber.App, ss services, jwtSecret []byte) {
 	// Тело запроса
 	type requestBody struct {
 		UserID uuid.UUID `json:"user_id"`
@@ -49,12 +49,12 @@ func Login(router *fiber.App, ss services, jwtSecret string) {
 		})
 }
 
-func newAccessToken(session domain.Session, jwtSecret string) (string, error) {
+func newAccessToken(session domain.Session, jwtSecret []byte) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
 		jwtSessionIDKey: session.ID,
 		jwtUserIDKey:    session.UserID,
 		jwtExpKey:       session.Expiry,
 	})
 
-	return token.SignedString([]byte(jwtSecret))
+	return token.SignedString(jwtSecret)
 }
