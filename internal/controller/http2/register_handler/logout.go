@@ -2,6 +2,7 @@ package register_handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
@@ -28,6 +29,7 @@ func Logout(router *fiber.App, ss services, jwtSecret []byte) {
 
 			return ss.Auth().Logout(input)
 		},
+		logger.New(),
 		middleware.ProtectedWithJWT(jwtSecret),
 	)
 }

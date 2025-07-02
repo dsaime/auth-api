@@ -2,6 +2,7 @@ package register_handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
@@ -25,6 +26,7 @@ func User(router *fiber.App, jwtSecret []byte) {
 				"id": userID,
 			})
 		},
+		logger.New(),
 		middleware.ProtectedWithJWT(jwtSecret),
 	)
 }

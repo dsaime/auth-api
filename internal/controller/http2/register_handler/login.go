@@ -2,6 +2,7 @@ package register_handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
@@ -47,7 +48,9 @@ func Login(router *fiber.App, ss services, jwtSecret []byte) {
 				"access_token":  token,
 				"refresh_token": out.RefreshToken,
 			})
-		})
+		},
+		logger.New(),
+	)
 }
 
 func newAccessToken(session domain.Session, jwtSecret []byte) (string, error) {

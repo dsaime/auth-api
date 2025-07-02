@@ -2,6 +2,7 @@ package register_handler
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 // Ping регистрирует обработчик для проверки работоспособности сервера.
@@ -14,5 +15,7 @@ func Ping(router *fiber.App) {
 		func(context *fiber.Ctx) error {
 			// Возвращаем простую строку "pong" для подтверждения работоспособности сервера.
 			return context.SendString("pong")
-		})
+		},
+		logger.New(),
+	)
 }

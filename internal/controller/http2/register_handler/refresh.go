@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
@@ -54,5 +55,7 @@ func Refresh(router *fiber.App, ss services, jwtSecret []byte) {
 				"session":      out.Session,
 				"access_token": tokenStr,
 			})
-		})
+		},
+		logger.New(),
+	)
 }
