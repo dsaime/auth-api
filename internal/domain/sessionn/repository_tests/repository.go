@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/dsaime/auth-api/internal/common"
-	"github.com/dsaime/auth-api/internal/domain/sessionn"
 )
 
 func TestRepository(t *testing.T, newRepository func() sessionn.Repository) {

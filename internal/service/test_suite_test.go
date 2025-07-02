@@ -12,13 +12,6 @@ import (
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
 	testifySuite "github.com/stretchr/testify/suite"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-
-	oauthProvider "github.com/dsaime/auth-api/internal/adapter/oauth_provider"
-	"github.com/dsaime/auth-api/internal/domain/chatt"
-	"github.com/dsaime/auth-api/internal/domain/sessionn"
-	"github.com/dsaime/auth-api/internal/domain/userr"
-	pgsqlRepository "github.com/dsaime/auth-api/internal/repository/pgsql_repository"
 )
 
 type testSuite struct {

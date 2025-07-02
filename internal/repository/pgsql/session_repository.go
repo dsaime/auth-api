@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/nullism/bqb"
 
 	"github.com/dsaime/auth-api/internal/domain"
 	sqlxRepo "github.com/dsaime/auth-api/internal/repository/pgsql/sqlx_repo"
@@ -15,12 +16,25 @@ type SessionRepository struct {
 }
 
 func (r *SessionRepository) List(filter domain.SessionFilter) ([]domain.Session, error) {
+	sel := bqb.New("SELECT * FROM sessions")
+	where := bqb.Optional("WHERE")
+
+	if filter.ID != uuid.Nil {
+		where = where.And("id = ?", filter.ID)
+	}
+
+	q := bqb.New("? ?", sel, where)
+	if r.IsTx() {
+		q = q.Space("FOR UPDATE")
+	}
+
+	sql, args, err := q.ToPgsql()
+	if err != nil {
+		return nil, fmt.Errorf("q.ToPgsql: %w", err)
+	}
+
 	var sessions []dbSession
-	if err := r.DB().Select(&sessions, `
-		SELECT *
-		FROM sessions
-		WHERE ($1 = '' OR $1 = id)
-	`, filter.ID); err != nil {
+	if err = r.DB().Select(&sessions, sql, args...); err != nil {
 		return nil, fmt.Errorf("r.DB().Select: %w", err)
 	}
 

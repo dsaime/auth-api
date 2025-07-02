@@ -3,9 +3,6 @@ package service
 import (
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/google/uuid"
-
-	"github.com/dsaime/auth-api/internal/domain/sessionn"
-	"github.com/dsaime/auth-api/internal/domain/userr"
 )
 
 func (suite *testSuite) newRndUserWithSession(sessionStatus string) (out struct {

@@ -2,10 +2,6 @@ package common
 
 import (
 	"math/rand"
-
-	"github.com/brianvoe/gofakeit/v7"
-
-	"github.com/dsaime/auth-api/internal/domain/userr"
 )
 
 // RndElem возвращает случайный элемент из среза
@@ -16,8 +12,4 @@ func RndElem[T any](slice []T) T {
 	}
 	index := rand.Intn(len(slice))
 	return slice[index]
-}
-
-func RndPassword() string {
-	return gofakeit.Password(true, true, true, true, false, userr.UserPasswordMaxLen)
 }

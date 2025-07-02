@@ -118,23 +118,23 @@ type AuthLogoutIn struct {
 func (s *Auth) Logout(in AuthLogoutIn) error {
 	// TODO: in.Validate()
 
-	// Найти сессию по ID
-	session, err := s.findSession(domain.SessionFilter{
-		ID: in.SessionID,
+	return s.Repo.InTransaction(func(txRepo domain.SessionRepository) error {
+		// Найти сессию по ID
+		session, err := s.findSession(domain.SessionFilter{
+			ID: in.SessionID,
+		})
+		if err != nil {
+			return err
+		}
+
+		// Отозвать сессию
+		if err = session.Revoke(); err != nil {
+			return err
+		}
+
+		// Сохранить сессию
+		return s.Repo.Upsert(session)
 	})
-	if err != nil {
-		return err
-	}
-
-	// Отозвать сессию и сохранить
-	if err = session.Revoke(); err != nil {
-		return err
-	}
-	if err = s.Repo.Upsert(session); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (s *Auth) findSession(filter domain.SessionFilter) (domain.Session, error) {
