@@ -26,12 +26,7 @@ func Logout(router *fiber.App, ss services, jwtSecret string) {
 				SessionID: sessionID,
 			}
 
-			out, err := ss.Auth().Logout(input)
-			if err != nil {
-				return err
-			}
-
-			return context.JSON(out)
+			return ss.Auth().Logout(input)
 		},
 		middleware.ProtectedWithJWT(jwtSecret),
 	)

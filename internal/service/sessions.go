@@ -111,11 +111,30 @@ func (s *Auth) Refresh(in AuthRefreshIn) (AuthRefreshOut, error) {
 type AuthLogoutIn struct {
 	SessionID uuid.UUID
 }
-type AuthLogoutOut struct {
-}
 
-func (s *Auth) Logout(in AuthLogoutIn) (AuthLogoutOut, error) {
+func (s *Auth) Logout(in AuthLogoutIn) error {
 	// TODO: in.Validate()
 
-	panic("not implemented")
+	sessions, err := s.Repo.List(domain.SessionFilter{
+		ID: in.SessionID,
+	})
+	if err != nil {
+		return err
+	}
+
+	if len(sessions) != 1 {
+		return ErrUnauthorized
+	}
+	session := sessions[0]
+
+	if session.Status != domain.SessionStatusVerified {
+		return ErrUnauthorized
+	}
+
+	session.Revoke()
+	if err = s.Repo.Upsert(session); err != nil {
+		return err
+	}
+
+	return nil
 }
