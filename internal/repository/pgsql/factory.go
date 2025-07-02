@@ -1,4 +1,4 @@
-package pgsqlRepository
+package pgsql
 
 import (
 	"fmt"
@@ -7,10 +7,8 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/dsaime/auth-api/internal/domain/chatt"
-	"github.com/dsaime/auth-api/internal/domain/sessionn"
-	"github.com/dsaime/auth-api/internal/domain/userr"
-	sqlxRepo "github.com/dsaime/auth-api/internal/repository/pgsql_repository/sqlx_repo"
+	"github.com/dsaime/auth-api/internal/domain"
+	sqlxRepo "github.com/dsaime/auth-api/internal/repository/pgsql/sqlx_repo"
 
 	_ "github.com/lib/pq"
 )
@@ -59,7 +57,7 @@ func (f *Factory) Cleanup() error {
 	}
 
 	// Список таблиц для очистки
-	tables := []string{"sessions", "oauth_users", "users", "participants", "invitations", "chats"}
+	tables := []string{"sessions"}
 
 	return sqlxRepo.New(f.db).InTransaction(func(tx sqlxRepo.SqlxRepo) error {
 		for _, table := range tables {
@@ -71,22 +69,8 @@ func (f *Factory) Cleanup() error {
 	})
 }
 
-// NewUserrRepository создает репозиторий пользователей
-func (f *Factory) NewUserrRepository() userr.Repository {
-	return &UserrRepository{
-		SqlxRepo: sqlxRepo.New(f.db),
-	}
-}
-
-// NewChattRepository создает репозиторий чатов
-func (f *Factory) NewChattRepository() chatt.Repository {
-	return &ChattRepository{
-		SqlxRepo: sqlxRepo.New(f.db),
-	}
-}
-
 // NewSessionnRepository создает репозиторий сессий
-func (f *Factory) NewSessionnRepository() sessionn.Repository {
+func (f *Factory) NewSessionnRepository() domain.SessionRepository {
 	return &SessionRepository{
 		SqlxRepo: sqlxRepo.New(f.db),
 	}

@@ -4,27 +4,21 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/dsaime/auth-api/internal/domain/chatt"
-	"github.com/dsaime/auth-api/internal/domain/sessionn"
-	"github.com/dsaime/auth-api/internal/domain/userr"
-	pgsqlRepository "github.com/dsaime/auth-api/internal/repository/pgsql_repository"
+	"github.com/dsaime/auth-api/internal/domain"
+	"github.com/dsaime/auth-api/internal/repository/pgsql"
 )
 
 type repositories struct {
-	chats    chatt.Repository
-	users    userr.Repository
-	sessions sessionn.Repository
+	sessions domain.SessionRepository
 }
 
-func initPgsqlRepositories(cfg pgsqlRepository.Config) (*repositories, func(), error) {
-	factory, err := pgsqlRepository.InitFactory(cfg)
+func initPgsqlRepositories(cfg pgsql.Config) (*repositories, func(), error) {
+	factory, err := pgsql.InitFactory(cfg)
 	if err != nil {
-		return nil, nil, fmt.Errorf("pgsqlRepository.InitFactory: %w", err)
+		return nil, nil, fmt.Errorf("pgsql.InitFactory: %w", err)
 	}
 
 	rs := &repositories{
-		chats:    factory.NewChattRepository(),
-		users:    factory.NewUserrRepository(),
 		sessions: factory.NewSessionnRepository(),
 	}
 

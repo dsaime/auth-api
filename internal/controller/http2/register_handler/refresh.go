@@ -9,7 +9,7 @@ import (
 // Refresh регистрирует обработчик, на обновление пары токенов.
 //
 // Метод: POST /auth/refresh
-func Refresh(router *fiber.App, ss Services) {
+func Refresh(router *fiber.App, ss services) {
 	// Тело запроса
 	type requestBody struct {
 		RefreshToken string `json:"refresh_token"`

@@ -13,7 +13,7 @@ import (
 // для пользователя с идентификатором (GUID) указанным в параметре запроса.
 //
 // Метод: POST /auth/login
-func Login(router *fiber.App, ss Services, jwtSecret string) {
+func Login(router *fiber.App, ss services, jwtSecret string) {
 	// Тело запроса
 	type requestBody struct {
 		UserID uuid.UUID `json:"user_id"`

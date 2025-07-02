@@ -1,4 +1,4 @@
-package pgsqlRepository
+package pgsql
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/dsaime/auth-api/internal/domain"
-	sqlxRepo "github.com/dsaime/auth-api/internal/repository/pgsql_repository/sqlx_repo"
+	sqlxRepo "github.com/dsaime/auth-api/internal/repository/pgsql/sqlx_repo"
 )
 
 type SessionRepository struct {

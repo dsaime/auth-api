@@ -4,7 +4,7 @@ import (
 	"github.com/dsaime/auth-api/internal/service"
 )
 
-// Services определяет интерфейс для доступа к сервисам приложения
-type Services interface {
+// services определяет интерфейс для доступа к сервисам приложения
+type services interface {
 	Auth() *service.Auth // Сервис аутентификации
 }

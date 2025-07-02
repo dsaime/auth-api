@@ -19,7 +19,9 @@ func User(router *fiber.App, jwtSecret string) {
 			claims := user.Claims.(jwt.MapClaims)
 			userID, _ := claims["user_id"].(uuid.UUID)
 
-			return context.JSON(map[string]any{
+			// todo: ss.Users().Info()
+
+			return context.JSON(fiber.Map{
 				"id": userID,
 			})
 		},
