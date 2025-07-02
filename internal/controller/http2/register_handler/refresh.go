@@ -52,7 +52,7 @@ func Refresh(router *fiber.App, ss services, jwtSecret []byte) {
 
 			return context.JSON(fiber.Map{
 				"session":      out.Session,
-				"access_Token": tokenStr,
+				"access_token": tokenStr,
 			})
 		})
 }

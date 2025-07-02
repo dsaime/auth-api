@@ -43,8 +43,9 @@ func Login(router *fiber.App, ss services, jwtSecret []byte) {
 			}
 
 			return context.JSON(fiber.Map{
-				"session":      out.Session,
-				"access_Token": token,
+				"session":       out.Session,
+				"access_token":  token,
+				"refresh_token": out.RefreshToken,
 			})
 		})
 }

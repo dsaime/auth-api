@@ -2,6 +2,7 @@ package domain
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,17 +20,17 @@ type Session struct {
 	RefreshTokenHash string    // Хэш токен для обновления продления сессии
 	//	CreatedAt time.Time
 	//	LastActivityAt time.Time
-	//
+	// AccessToken string
 }
 
 const (
-	SessionStatusVerified = "verified" // Подтвержденная
-	SessionStatusExpired  = "expired"  // Истекшая
-	SessionStatusRevoked  = "revoked"  // Отозванная
+	SessionStatusActive  = "active"  // Активная
+	SessionStatusExpired = "expired" // Истекшая
+	SessionStatusRevoked = "revoked" // Отозванная пользователем или сервером
 )
 
 var SessionStatuses = []string{
-	SessionStatusVerified,
+	SessionStatusActive,
 	SessionStatusExpired,
 	SessionStatusRevoked,
 }
@@ -40,14 +41,11 @@ const (
 )
 
 // NewSession создает новую сессию, связанную с пользователем.
-func NewSession(userID uuid.UUID, agent, status, refreshToken string) (Session, error) {
+func NewSession(userID uuid.UUID, agent, refreshToken string) (Session, error) {
 	if err := ValidateID(userID); err != nil {
 		return Session{}, err
 	}
 	if err := ValidateSessionAgent(agent); err != nil {
-		return Session{}, err
-	}
-	if err := ValidateSessionStatus(status); err != nil {
 		return Session{}, err
 	}
 	if refreshToken == "" {
@@ -63,7 +61,7 @@ func NewSession(userID uuid.UUID, agent, status, refreshToken string) (Session, 
 		ID:               uuid.New(),
 		UserID:           userID,
 		UserAgent:        agent,
-		Status:           status,
+		Status:           SessionStatusActive,
 		Expiry:           newSessionExpiryTime(), // Чтобы значение полностью помещалось в БД
 		RefreshTokenHash: string(hashedRefreshToken),
 	}, nil
@@ -103,19 +101,35 @@ var (
 	ErrSessionNameEmpty      = errors.New("название сессии не может быть пустым")
 )
 
-func (s *Session) CompareRefreshToken(rt string) error {
+func (s *Session) CompareRefreshTokenWithHash(rt string) error {
 	return bcrypt.CompareHashAndPassword([]byte(s.RefreshTokenHash), []byte(rt))
 }
 
-func (s *Session) Revoke() {
-	//if s.Status == SessionStatusRevoked { return errors.New(...) }
+func (s *Session) Revoke() error {
+	if s.Status == SessionStatusRevoked {
+		return errors.New("сессия уже отозвана")
+	}
+
 	s.Status = SessionStatusRevoked
+
+	return nil
 }
 
-func (s *Session) ExtendExpiry() {
-	//if s.Status == SessionStatusRevoked { return errors.New(...) }
-	s.Status = SessionStatusVerified
+var sessionsMaysBeExtended = []string{
+	SessionStatusActive,
+	SessionStatusExpired,
+}
+
+func (s *Session) ExtendExpiry() error {
+	// Проверить возможность продлить сессию в ее статусе
+	if !slices.Contains(sessionsMaysBeExtended, s.Status) {
+		return fmt.Errorf("невозможно продлить сессию в статусе '%s'", s.Status)
+	}
+
+	s.Status = SessionStatusActive
 	s.Expiry = newSessionExpiryTime()
+
+	return nil
 }
 
 func newSessionExpiryTime() time.Time {

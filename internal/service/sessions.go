@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -24,15 +23,20 @@ type AuthLoginOut struct {
 	Session      domain.Session
 }
 
+// Login создает новую активную сессию пользователя
 func (s *Auth) Login(in AuthLoginIn) (AuthLoginOut, error) {
 	// TODO: in.Validate()
 
+	// Случайное значение токена
 	refreshToken := uuid.NewString()
-	session, err := domain.NewSession(in.UserID, in.UserAgent, domain.SessionStatusVerified, refreshToken)
+
+	// Создать новую сессию
+	session, err := domain.NewSession(in.UserID, in.UserAgent, refreshToken)
 	if err != nil {
 		return AuthLoginOut{}, err
 	}
 
+	// Сохранить сессию
 	if err = s.Repo.Upsert(session); err != nil {
 		return AuthLoginOut{}, err
 	}
@@ -55,11 +59,13 @@ type AuthRefreshOut struct {
 
 var ErrUnauthorized = errors.New("unauthorized")
 
+// Refresh продлевает активную или истекшую сессию
 func (s *Auth) Refresh(in AuthRefreshIn) (AuthRefreshOut, error) {
 	// TODO: in.Validate()
 
 	var updatedSession domain.Session
 	if err := s.Repo.InTransaction(func(txRepo domain.SessionRepository) error {
+		// Найти сессию по ID
 		session, err := s.findSession(domain.SessionFilter{
 			ID: in.SessionID,
 		})
@@ -67,20 +73,17 @@ func (s *Auth) Refresh(in AuthRefreshIn) (AuthRefreshOut, error) {
 			return err
 		}
 
-		if session.Status != domain.SessionStatusVerified {
-			return ErrUnauthorized
-		}
-
-		if session.Expiry.Before(time.Now()) {
-			return ErrUnauthorized
-		}
-
-		if err = session.CompareRefreshToken(in.RefreshToken); err != nil {
+		// Сравнить токен из параметров с хешем токена в сессии
+		if err = session.CompareRefreshTokenWithHash(in.RefreshToken); err != nil {
 			return err
 		}
 
+		// UserAgent из параметров должен совпадать со значением в сессии
 		if in.UserAgent != session.UserAgent {
-			session.Revoke()
+			// Деактивировать сессию и сохранить
+			if err = session.Revoke(); err != nil {
+				return err
+			}
 			if err = s.Repo.Upsert(session); err != nil {
 				return err
 			}
@@ -88,11 +91,15 @@ func (s *Auth) Refresh(in AuthRefreshIn) (AuthRefreshOut, error) {
 			return ErrUnauthorized
 		}
 
-		session.ExtendExpiry()
+		// Продлить и сохранить сессию
+		if err = session.ExtendExpiry(); err != nil {
+			return err
+		}
 		if err = s.Repo.Upsert(session); err != nil {
 			return err
 		}
 		updatedSession = session
+
 		return nil
 	}); err != nil {
 		return AuthRefreshOut{}, err
@@ -107,9 +114,11 @@ type AuthLogoutIn struct {
 	SessionID uuid.UUID
 }
 
+// Logout отзывает (деактивирует сессию)
 func (s *Auth) Logout(in AuthLogoutIn) error {
 	// TODO: in.Validate()
 
+	// Найти сессию по ID
 	session, err := s.findSession(domain.SessionFilter{
 		ID: in.SessionID,
 	})
@@ -117,11 +126,10 @@ func (s *Auth) Logout(in AuthLogoutIn) error {
 		return err
 	}
 
-	if session.Status != domain.SessionStatusVerified {
-		return ErrUnauthorized
+	// Отозвать сессию и сохранить
+	if err = session.Revoke(); err != nil {
+		return err
 	}
-
-	session.Revoke()
 	if err = s.Repo.Upsert(session); err != nil {
 		return err
 	}
@@ -136,7 +144,7 @@ func (s *Auth) findSession(filter domain.SessionFilter) (domain.Session, error) 
 	}
 
 	if len(sessions) != 1 {
-		return domain.Session{}, errors.New("not found")
+		return domain.Session{}, errors.New("не найдено")
 	}
 
 	return sessions[0], nil
