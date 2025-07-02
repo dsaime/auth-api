@@ -1,7 +1,11 @@
 package register_handler
 
 import (
+	"errors"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 
 	"github.com/dsaime/auth-api/internal/service"
 )
@@ -9,7 +13,7 @@ import (
 // Refresh регистрирует обработчик, на обновление пары токенов.
 //
 // Метод: POST /auth/refresh
-func Refresh(router *fiber.App, ss services) {
+func Refresh(router *fiber.App, ss services, jwtSecret string) {
 	// Тело запроса
 	type requestBody struct {
 		RefreshToken string `json:"refresh_token"`
@@ -24,8 +28,15 @@ func Refresh(router *fiber.App, ss services) {
 				return err
 			}
 
+			token, err := validateJWT(rb.AccessToken, []byte(jwtSecret))
+			if err != nil && !errors.Is(err, jwt.ErrTokenExpired) {
+				return err
+			}
+			claims := token.Claims.(jwt.MapClaims)
+			sessionID, _ := claims[jwtSessionIDKey].(uuid.UUID)
+
 			input := service.AuthRefreshIn{
-				AccessToken:  rb.AccessToken,
+				SessionID:    sessionID,
 				RefreshToken: rb.RefreshToken,
 			}
 

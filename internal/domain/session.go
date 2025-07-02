@@ -16,8 +16,7 @@ type Session struct {
 	UserAgent        string    // [название модели телефона / название браузера]
 	Status           string    // Статус сессии
 	Expiry           time.Time // Дата истечения сессии
-	AccessToken      string
-	RefreshTokenHash string // Хэш токен для обновления продления сессии
+	RefreshTokenHash string    // Хэш токен для обновления продления сессии
 	//	CreatedAt time.Time
 	//	LastActivityAt time.Time
 	//

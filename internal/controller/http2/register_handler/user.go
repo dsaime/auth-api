@@ -15,11 +15,11 @@ func User(router *fiber.App, jwtSecret string) {
 	router.Get(
 		"/user",
 		func(context *fiber.Ctx) error {
-			user := context.Locals("user").(*jwt.Token)
-			claims := user.Claims.(jwt.MapClaims)
-			userID, _ := claims["user_id"].(uuid.UUID)
+			token := context.Locals("user").(*jwt.Token)
+			claims := token.Claims.(jwt.MapClaims)
+			userID, _ := claims[jwtUserIDKey].(uuid.UUID)
 
-			// todo: ss.Users().Info()
+			// todo: ss.Users().Info({userID})
 
 			return context.JSON(fiber.Map{
 				"id": userID,
