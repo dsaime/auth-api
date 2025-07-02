@@ -5,6 +5,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
+	"github.com/dsaime/auth-api/internal/domain"
 	"github.com/dsaime/auth-api/internal/service"
 )
 
@@ -36,20 +37,24 @@ func Login(router *fiber.App, ss services, jwtSecret string) {
 				return err
 			}
 
-			token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-				jwtSessionIDKey: out.Session.ID,
-				jwtUserIDKey:    out.Session.UserID,
-				jwtExpKey:       out.Session.Expiry,
-			})
-
-			t, err := token.SignedString([]byte(jwtSecret))
+			token, err := newAccessToken(out.Session, jwtSecret)
 			if err != nil {
 				return context.SendStatus(fiber.StatusInternalServerError)
 			}
 
 			return context.JSON(fiber.Map{
 				"session":      out.Session,
-				"access_Token": t,
+				"access_Token": token,
 			})
 		})
+}
+
+func newAccessToken(session domain.Session, jwtSecret string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
+		jwtSessionIDKey: session.ID,
+		jwtUserIDKey:    session.UserID,
+		jwtExpKey:       session.Expiry,
+	})
+
+	return token.SignedString([]byte(jwtSecret))
 }

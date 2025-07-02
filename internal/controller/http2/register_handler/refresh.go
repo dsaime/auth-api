@@ -45,6 +45,14 @@ func Refresh(router *fiber.App, ss services, jwtSecret string) {
 				return err
 			}
 
-			return context.JSON(out)
+			tokenStr, err := newAccessToken(out.Session, jwtSecret)
+			if err != nil {
+				return context.SendStatus(fiber.StatusInternalServerError)
+			}
+
+			return context.JSON(fiber.Map{
+				"session":      out.Session,
+				"access_Token": tokenStr,
+			})
 		})
 }

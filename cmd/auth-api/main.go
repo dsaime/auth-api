@@ -60,6 +60,12 @@ func initCliCommand() *cli.Command {
 				Required:    true,
 			},
 			&cli.StringFlag{
+				Name:        "jwt-secret",
+				Destination: &cfg.JWTSecret,
+				Usage:       "Строка для подписи jwt",
+				Required:    true,
+			},
+			&cli.StringFlag{
 				Name:        "http-addr",
 				Destination: &cfg.HttpAddr,
 				Usage:       "Адрес для запуска HTTP сервера",

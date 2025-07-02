@@ -23,14 +23,12 @@ type Session struct {
 }
 
 const (
-	SessionStatusNew      = "new"      // Новая
 	SessionStatusVerified = "verified" // Подтвержденная
 	SessionStatusExpired  = "expired"  // Истекшая
 	SessionStatusRevoked  = "revoked"  // Отозванная
 )
 
 var SessionStatuses = []string{
-	SessionStatusNew,
 	SessionStatusVerified,
 	SessionStatusExpired,
 	SessionStatusRevoked,
@@ -62,13 +60,11 @@ func NewSession(userID uuid.UUID, agent, status, refreshToken string) (Session, 
 	}
 
 	return Session{
-		ID:        uuid.New(),
-		UserID:    userID,
-		UserAgent: agent,
-		Status:    status,
-		Expiry: time.Now().Add(accessTokenLifetime).
-			In(time.UTC).               // Для единообразия и возможности сравнивать в тестах всю сессию
-			Truncate(time.Microsecond), // Чтобы значение полностью помещалось в БД
+		ID:               uuid.New(),
+		UserID:           userID,
+		UserAgent:        agent,
+		Status:           status,
+		Expiry:           newSessionExpiryTime(), // Чтобы значение полностью помещалось в БД
 		RefreshTokenHash: string(hashedRefreshToken),
 	}, nil
 }
@@ -81,7 +77,7 @@ type SessionRepository interface {
 
 // SessionFilter представляет собой фильтр по сессиям.
 type SessionFilter struct {
-	ID string
+	ID uuid.UUID
 }
 
 // ValidateSessionStatus проверяет корректность статуса сессии.
@@ -106,3 +102,24 @@ var (
 	ErrSessionStatusValidate = errors.New("некорректный статус сессии")
 	ErrSessionNameEmpty      = errors.New("название сессии не может быть пустым")
 )
+
+func (s *Session) CompareRefreshToken(rt string) error {
+	return bcrypt.CompareHashAndPassword([]byte(s.RefreshTokenHash), []byte(rt))
+}
+
+func (s *Session) Revoke() {
+	//if s.Status == SessionStatusRevoked { return errors.New(...) }
+	s.Status = SessionStatusRevoked
+}
+
+func (s *Session) ExtendExpiry() {
+	//if s.Status == SessionStatusRevoked { return errors.New(...) }
+	s.Status = SessionStatusVerified
+	s.Expiry = newSessionExpiryTime()
+}
+
+func newSessionExpiryTime() time.Time {
+	return time.Now().Add(accessTokenLifetime).
+		In(time.UTC).              // Для единообразия и возможности сравнивать в тестах всю сессию
+		Truncate(time.Microsecond) // Чтобы значение полностью помещалось в БД
+}
