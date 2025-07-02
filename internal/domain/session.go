@@ -14,13 +14,14 @@ import (
 type Session struct {
 	ID               uuid.UUID // ID сессии
 	UserID           uuid.UUID // ID пользователя, к которому относится сессия
-	UserAgent        string    // [название модели телефона / название браузера]
+	UserAgent        string    // Информация о браузере, операционной системе и устройстве
 	Status           string    // Статус сессии
 	Expiry           time.Time // Дата истечения сессии
-	RefreshTokenHash string    // Хэш токен для обновления продления сессии
-	//	CreatedAt time.Time
-	//	LastActivityAt time.Time
-	// AccessToken string
+	RefreshTokenHash string    // Хэш токен для продления сессии. Читается из хранилища
+	//RefreshToken string // Токен для продления сессии. Передается в хранилище
+	//CreatedAt time.Time // Дата создания сессии
+	//LastActivityAt time.Time // Дата последней активности этой сессии
+	//AccessToken string // Токен для идентификации сессии, изменяемый
 }
 
 const (
@@ -36,7 +37,6 @@ var SessionStatuses = []string{
 }
 
 const (
-	//refreshTokenLifetime = 60 * 24 * time.Hour // 60 дней
 	accessTokenLifetime = 15 * time.Minute // 15 минут
 )
 
@@ -52,6 +52,7 @@ func NewSession(userID uuid.UUID, agent, refreshToken string) (Session, error) {
 		return Session{}, errors.New("некорректный refreshToken")
 	}
 
+	// Получить хэш токена
 	hashedRefreshToken, err := bcrypt.GenerateFromPassword([]byte(refreshToken), bcrypt.DefaultCost)
 	if err != nil {
 		return Session{}, err
@@ -62,7 +63,7 @@ func NewSession(userID uuid.UUID, agent, refreshToken string) (Session, error) {
 		UserID:           userID,
 		UserAgent:        agent,
 		Status:           SessionStatusActive,
-		Expiry:           newSessionExpiryTime(), // Чтобы значение полностью помещалось в БД
+		Expiry:           newSessionExpiryTime(),
 		RefreshTokenHash: string(hashedRefreshToken),
 	}, nil
 }
