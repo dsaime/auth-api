@@ -23,7 +23,7 @@ services:
       - "postgresql://postgres:postgres@test.pgsql:5432/test_auth_api_db?sslmode=disable"
       - "--log-level"
       - "debug"
-      - "ip-alert-webhook"
+      - "--ip-alert-webhook"
       - "http://test.echo-server/webhook?session_id={{.SessionID}}&old_id={{.OldIP}}&new_ip={{.NewIP}}"
 
   # https://github.com/docker-library/docs/blob/master/postgres/README.md
