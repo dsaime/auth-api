@@ -1,6 +1,8 @@
 package register_handler
 
 import (
+	"net"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/golang-jwt/jwt/v5"
@@ -31,6 +33,7 @@ func Login(router *fiber.App, ss services, jwtSecret []byte) {
 			input := service.AuthLoginIn{
 				UserID:    rb.UserID,
 				UserAgent: context.Get(fiber.HeaderUserAgent),
+				IP:        net.IP(context.IP()),
 			}
 
 			out, err := ss.Auth().Login(input)

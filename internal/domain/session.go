@@ -3,6 +3,7 @@ package domain
 import (
 	"errors"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,6 +23,7 @@ type Session struct {
 	//CreatedAt time.Time // Дата создания сессии
 	//LastActivityAt time.Time // Дата последней активности этой сессии
 	//AccessToken string // Токен для идентификации сессии, изменяемый
+	IP net.IP // Адрес устройства
 }
 
 const (
@@ -41,12 +43,15 @@ const (
 )
 
 // NewSession создает новую сессию, связанную с пользователем.
-func NewSession(userID uuid.UUID, agent, refreshToken string) (Session, error) {
+func NewSession(userID uuid.UUID, agent string, ip net.IP, refreshToken string) (Session, error) {
 	if err := ValidateID(userID); err != nil {
 		return Session{}, err
 	}
 	if err := ValidateSessionAgent(agent); err != nil {
 		return Session{}, err
+	}
+	if ip.IsUnspecified() {
+		return Session{}, errors.New("некорректный IP")
 	}
 	if refreshToken == "" {
 		return Session{}, errors.New("некорректный refreshToken")
@@ -64,6 +69,7 @@ func NewSession(userID uuid.UUID, agent, refreshToken string) (Session, error) {
 		UserAgent:        agent,
 		Status:           SessionStatusActive,
 		Expiry:           newSessionExpiryTime(),
+		IP:               ip,
 		RefreshTokenHash: string(hashedRefreshToken),
 	}, nil
 }
@@ -137,4 +143,8 @@ func newSessionExpiryTime() time.Time {
 	return time.Now().Add(accessTokenLifetime).
 		In(time.UTC).              // Для единообразия и возможности сравнивать в тестах всю сессию
 		Truncate(time.Microsecond) // Чтобы значение полностью помещалось в БД
+}
+
+func (s *Session) UpdateIP(ip net.IP) {
+	s.IP = ip
 }

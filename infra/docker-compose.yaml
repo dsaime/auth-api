@@ -17,6 +17,8 @@ services:
     command:
       - "--http-addr"
       - ":8080"
+      - "--jwt-secret"
+      - "example_jwt_secret"
       - "--pgsql-dsn"
       - "postgresql://postgres:postgres@test.pgsql:5432/test_auth_api_db?sslmode=disable"
       - "--log-level"

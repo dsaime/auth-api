@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"net"
 
 	"github.com/google/uuid"
 
@@ -10,12 +11,16 @@ import (
 
 // Auth implements the authentication interface
 type Auth struct {
-	Repo domain.SessionRepository
+	Repo    domain.SessionRepository
+	Alerter interface {
+		UnknownIPRefreshSessionAlert(sessionID uuid.UUID, oldIP, newIP net.IP)
+	}
 }
 
 type AuthLoginIn struct {
 	UserID    uuid.UUID
 	UserAgent string
+	IP        net.IP
 }
 
 type AuthLoginOut struct {
@@ -31,7 +36,7 @@ func (s *Auth) Login(in AuthLoginIn) (AuthLoginOut, error) {
 	refreshToken := uuid.NewString()
 
 	// Создать новую сессию
-	session, err := domain.NewSession(in.UserID, in.UserAgent, refreshToken)
+	session, err := domain.NewSession(in.UserID, in.UserAgent, in.IP, refreshToken)
 	if err != nil {
 		return AuthLoginOut{}, err
 	}
@@ -51,6 +56,7 @@ type AuthRefreshIn struct {
 	SessionID    uuid.UUID
 	RefreshToken string
 	UserAgent    string
+	IP           net.IP
 }
 
 type AuthRefreshOut struct {
@@ -73,7 +79,7 @@ func (s *Auth) Refresh(in AuthRefreshIn) (AuthRefreshOut, error) {
 			return err
 		}
 
-		// Сравнить токен из параметров с хешем токена в сессии
+		// Сравнить токен из параметров с хэшем токена в сессии
 		if err = session.CompareRefreshTokenWithHash(in.RefreshToken); err != nil {
 			return err
 		}
@@ -89,6 +95,15 @@ func (s *Auth) Refresh(in AuthRefreshIn) (AuthRefreshOut, error) {
 			}
 
 			return ErrUnauthorized
+		}
+
+		// Обновление с нового IP будет фиксироваться.
+		// Улучшить: Если состояние и уведомление должны быть согласованы,
+		// можно добавить буфер уведомлений, а если требуется гарантия отправки,
+		// то писать под той же транзакцией в хранилище.
+		if !session.IP.Equal(in.IP) {
+			session.UpdateIP(in.IP)
+			go s.Alerter.UnknownIPRefreshSessionAlert(session.ID, session.IP, in.IP)
 		}
 
 		// Продлить и сохранить сессию

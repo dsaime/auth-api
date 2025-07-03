@@ -2,6 +2,7 @@ package pgsql
 
 import (
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/google/uuid"
@@ -47,11 +48,12 @@ func (r *SessionRepository) Upsert(session domain.Session) error {
 	}
 
 	if _, err := r.DB().NamedExec(`
-		INSERT INTO sessions(id, user_id, user_agent, status, expiry, refresh_token) 
-		VALUES (:id, :user_id, :user_agent, :status, :expiry, :refresh_token)
+		INSERT INTO sessions(id, user_id, user_agent, ip, status, expiry, refresh_token) 
+		VALUES (:id, :user_id, :user_agent, :ip, :status, :expiry, :refresh_token)
 		ON CONFLICT (id) DO UPDATE SET
 			user_id=excluded.user_id,
 			user_agent=excluded.user_agent,
+			ip=excluded.ip,
 			status=excluded.status,
 			expiry=excluded.expiry,
 			refresh_token=excluded.refresh_token
@@ -69,9 +71,10 @@ func (r *SessionRepository) InTransaction(fn func(txRepo domain.SessionRepositor
 }
 
 type dbSession struct {
-	ID               string    `db:"id"`
-	UserID           string    `db:"user_id"`
+	ID               uuid.UUID `db:"id"`
+	UserID           uuid.UUID `db:"user_id"`
 	UserAgent        string    `db:"user_agent"`
+	IP               net.IP    `db:"ip"`
 	Status           string    `db:"status"`
 	Expiry           time.Time `db:"expiry"`
 	RefreshTokenHash string    `db:"refresh_token_hash"`
@@ -79,9 +82,10 @@ type dbSession struct {
 
 func toDBSession(session domain.Session) dbSession {
 	return dbSession{
-		ID:               session.ID.String(),
-		UserID:           session.UserID.String(),
+		ID:               session.ID,
+		UserID:           session.UserID,
 		UserAgent:        session.UserAgent,
+		IP:               session.IP,
 		Status:           session.Status,
 		Expiry:           session.Expiry,
 		RefreshTokenHash: session.RefreshTokenHash,
@@ -89,10 +93,13 @@ func toDBSession(session domain.Session) dbSession {
 }
 
 func toDomainSession(session dbSession) domain.Session {
+	// Улучшить: поля скрыть под геттеры, создавать экземпляр
+	// только через конструктор domain.MustNewSession(...)
 	return domain.Session{
-		ID:               uuid.MustParse(session.ID),
-		UserID:           uuid.MustParse(session.UserID),
+		ID:               session.ID,
+		UserID:           session.UserID,
 		UserAgent:        session.UserAgent,
+		IP:               session.IP,
 		Status:           session.Status,
 		Expiry:           session.Expiry,
 		RefreshTokenHash: session.RefreshTokenHash,

@@ -2,6 +2,7 @@ package register_handler
 
 import (
 	"errors"
+	"net"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -39,6 +40,7 @@ func Refresh(router *fiber.App, ss services, jwtSecret []byte) {
 			input := service.AuthRefreshIn{
 				SessionID:    sessionID,
 				RefreshToken: rb.RefreshToken,
+				IP:           net.IP(context.IP()),
 			}
 
 			out, err := ss.Auth().Refresh(input)
