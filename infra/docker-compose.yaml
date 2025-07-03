@@ -49,6 +49,20 @@ services:
     networks:
       dsaime.network:
 
+  # http://hub.docker.com/r/swaggerapi/swagger-editor/
+  test.swagger:
+    container_name: dsaime.test.swagger
+    image: swaggerapi/swagger-editor:v4.14.6
+    restart: unless-stopped
+    environment:
+      SWAGGER_FILE: /tmp/swagger.yaml
+    ports:
+      - "5187:8080" # http://127.0.0.1:5187/
+    volumes:
+      - ./swagger:/tmp
+    networks:
+      dsaime.network:
+
   # https://hub.docker.com/r/ealen/echo-server
   test.echo-server:
     container_name: dsaime.test.echo-server
