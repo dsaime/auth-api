@@ -66,6 +66,11 @@ func initCliCommand() *cli.Command {
 				Required:    true,
 			},
 			&cli.StringFlag{
+				Name:        "ip-alert-webhook",
+				Destination: &cfg.Webhook,
+				Usage:       "URL на который будет выполняться POST-запрос при обновлении токена с нового ip (с подстановкой text/template переменных)",
+			},
+			&cli.StringFlag{
 				Name:        "http-addr",
 				Destination: &cfg.HttpAddr,
 				Usage:       "Адрес для запуска HTTP сервера",

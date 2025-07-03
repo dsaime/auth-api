@@ -13,7 +13,8 @@ func (s *services) Auth() *service.Auth {
 func initServices(repos *repositories, adaps *adapters) *services {
 	return &services{
 		auth: &service.Auth{
-			Repo: repos.sessions,
+			Repo:    repos.sessions,
+			Alerter: adaps.alerter,
 		},
 	}
 }

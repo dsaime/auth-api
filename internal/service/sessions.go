@@ -12,9 +12,11 @@ import (
 // Auth implements the authentication interface
 type Auth struct {
 	Repo    domain.SessionRepository
-	Alerter interface {
-		UnknownIPRefreshSessionAlert(sessionID uuid.UUID, oldIP, newIP net.IP)
-	}
+	Alerter Alerter
+}
+
+type Alerter interface {
+	UnknownIPRefreshSessionAlert(sessionID uuid.UUID, oldIP, newIP net.IP)
 }
 
 type AuthLoginIn struct {

@@ -9,4 +9,5 @@ type Config struct {
 	HttpAddr  string
 	LogLevel  string
 	JWTSecret string
+	Webhook   string
 }
