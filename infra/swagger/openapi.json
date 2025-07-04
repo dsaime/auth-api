@@ -1,0 +1,230 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "auth-api",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Ilya Eryshov",
+      "url": "https://t.me/dsaime",
+      "email": "acc.saime.d@gmail.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://test.auth-api:8080",
+      "description": ""
+    }
+  ],
+  "paths": {
+    "/ping": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "plain/text": {
+                "examples": {
+                  "ok": {
+                    "value": "pong"
+                  }
+                }
+              }
+            },
+            "description": "успешная проверка"
+          }
+        },
+        "description": "проверка доступности сервиса"
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth_login_rb"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth_login_resp"
+                }
+              }
+            },
+            "description": "Аутентификация успешно выполнена. Создана сессия"
+          }
+        },
+        "description": "на получение пары токенов (access и refresh) для пользователя с идентификатором (GUID) указанным в параметре запроса"
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "успешная деавторизация"
+          }
+        },
+        "security": [
+          {
+            "jwt_authentication": [
+            ]
+          }
+        ],
+        "description": "деавторизацию пользователя (поле выполнения этого запроса с access токеном, пользователю больше не должен быть доступен роут на получение его GUID и операция обновления токенов)"
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth_refresh_rb"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth_refresh_resp"
+                }
+              }
+            },
+            "description": "токены обновлены"
+          }
+        },
+        "description": "обновление пары токенов"
+      }
+    },
+    "/user": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user_resp"
+                }
+              }
+            },
+            "description": "успешный ответ"
+          }
+        },
+        "security": [
+          {
+            "jwt_authentication": [
+            ]
+          }
+        ],
+        "description": "информация о пользователе"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "auth_login_rb": {
+        "title": "Root Type for auth_login_rb",
+        "description": "",
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "user_id": "886e6a95-77df-4c8d-b184-37d4623e62bb"
+        }
+      },
+      "auth_login_resp": {
+        "title": "Root Type for auth_login_resp",
+        "description": "",
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "object"
+          },
+          "access_token": {
+            "type": "string"
+          },
+          "refresh_token": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "session": {
+
+          },
+          "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30",
+          "refresh_token": "3dbf0130-96f2-47d8-97c3-e3af9051c643"
+        }
+      },
+      "auth_refresh_rb": {
+        "title": "Root Type for auth_refresh_rb",
+        "description": "",
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "refresh_token": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "access_token": "",
+          "refresh_token": ""
+        }
+      },
+      "auth_refresh_resp": {
+        "title": "Root Type for auth_refresh_resp",
+        "description": "",
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "session": {
+            "type": "object"
+          }
+        },
+        "example": {
+          "access_token": "",
+          "session": {
+
+          }
+        }
+      },
+      "user_resp": {
+        "title": "Root Type for user_resp",
+        "description": "",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "id": ""
+        }
+      }
+    },
+    "securitySchemes": {
+      "jwt_authentication": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  }
+}

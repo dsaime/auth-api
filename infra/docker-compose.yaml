@@ -55,7 +55,7 @@ services:
     image: swaggerapi/swagger-editor:v4.14.6
     restart: unless-stopped
     environment:
-      SWAGGER_FILE: /tmp/swagger.yaml
+      SWAGGER_FILE: /tmp/openapi.json
     ports:
       - "5187:8080" # http://127.0.0.1:5187/
     volumes:
